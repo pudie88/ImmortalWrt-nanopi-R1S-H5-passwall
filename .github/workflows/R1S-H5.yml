@@ -48,7 +48,7 @@ jobs:
         haskell: true
         large-packages: true
         docker-images: true
-        swap-storage: true
+        swap-storage: false   # 改为 false
 
     - name: Initialization environment
       env:
@@ -148,21 +148,13 @@ jobs:
 
     - name: Organize files
       id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        # 1. 进入固件生成的具体目录 (根据你的源码路径调整)
+        cp openwrt/.config openwrt/bin/targets/*/*/
         cd openwrt/bin/targets/*/*
-        
-        # 2. 移除不需要的大型文件夹
         rm -rf packages
-        
-        # 3. 将当前绝对路径存入环境变量
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        
-        # 4. (可选) 把配置文件拷进去方便以后查看，用绝对路径防错
-        cp $GITHUB_WORKSPACE/openwrt/.config $PWD/config.buildinfo || true
-        
-        echo "status=success" >> "$GITHUB_OUTPUT"
+        echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@v4
@@ -202,11 +194,10 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        # 明确指定只上传这些后缀的文件，彻底避开 /swapfile
         files: |
           ${{ env.FIRMWARE }}/*.img.gz
-          ${{ env.FIRMWARE }}/*.manifest
-          ${{ env.FIRMWARE }}/*.buildinfo
+          ${{ env.FIRMWARE }}/*.tar.gz
+          ${{ env.FIRMWARE }}/*.config
 
     - name: Delete old releases
       uses: dev-drprasad/delete-older-releases@v0.3.4
