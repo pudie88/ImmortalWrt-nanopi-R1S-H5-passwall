@@ -14,7 +14,6 @@ on:
         required: false
         default: 'false'
   schedule:
-    # 每周一 UTC 00:00 自动构建（可按需修改或删除）
     - cron: '0 0 * * 1'
 
 env:
@@ -48,7 +47,7 @@ jobs:
         haskell: true
         large-packages: true
         docker-images: true
-        swap-storage: false   # 改为 false
+        swap-storage: false
 
     - name: Initialization environment
       env:
@@ -72,17 +71,17 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
 
-    - name: Load custom feeds
+    - name: Clone source code
+      working-directory: /workdir
       run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        sed -i 's/__https/https/g; s/;main__/;main/g' openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
+        df -hT $PWD
+        git clone --depth=1 $REPO_URL -b $REPO_BRANCH openwrt
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        [ -f openwrt/feeds.conf.default ] && sed -i 's/__https/https/g; s/;main__/;main/g' openwrt/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
@@ -120,7 +119,6 @@ jobs:
         cd openwrt
         make defconfig
         make download -j$(nproc)
-        # 删除下载不完整的文件
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
@@ -129,7 +127,6 @@ jobs:
       run: |
         cd openwrt
         echo -e "$(nproc) thread compile"
-        # 先多线程，失败后单线程输出详细日志
         make -j$(nproc) || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
@@ -213,4 +210,3 @@ jobs:
       if: failure()
       run: |
         echo "Build failed! Check the logs above for details."
-        # 如有需要可在此添加 Telegram/邮件通知
