@@ -1,9 +1,4 @@
-#
-# Build ImmortalWrt for NanoPi R1S-H5 using GitHub Actions
-# Optimized version
-#
-
-name: Build ImmortalWrt R1S-H5-21.02
+name: Build ImmortalWrt R1S-H5-23.05
 
 on:
   repository_dispatch:
@@ -18,7 +13,7 @@ on:
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: openwrt-21.02
+  REPO_BRANCH: openwrt-23.05
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: SEED/R1S-H5/seed.config
   DIY_P1_SH: SCRIPTS/R1S-H5/diy-part1.sh
@@ -164,7 +159,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=$(date +"%Y.%m.%d-%H%M")-R1S-H5-21.02" >> $GITHUB_OUTPUT
+        echo "release_tag=$(date +"%Y.%m.%d-%H%M")-R1S-H5-23.05" >> $GITHUB_OUTPUT
         cat > release.txt << EOF
         ## NanoPi R1S-H5 ImmortalWrt 固件
 
