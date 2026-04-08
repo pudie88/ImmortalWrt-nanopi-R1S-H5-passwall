@@ -2,9 +2,11 @@
 # File name: diy-part1.sh
 # Description: OpenWrt DIY script part 1 (Before Update feeds)
 
-# 添加 passwall 软件源
-sed -i '$a src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages;main' feeds.conf.default
-sed -i '$a src-git passwall https://github.com/xiaorouji/openwrt-passwall;main' feeds.conf.default
+# 添加 passwall 依赖包源
+echo "src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages;main" >> feeds.conf.default
+
+# 添加 passwall 主源
+echo "src-git passwall https://github.com/xiaorouji/openwrt-passwall;main" >> feeds.conf.default
 
 # 添加 OpenList（原 AList）
 # 如果 ImmortalWrt 源中没有 openlist，可从第三方 feed 引入
