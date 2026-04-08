@@ -2,10 +2,7 @@
 # File name: diy-part1.sh
 # Description: OpenWrt DIY script part 1 (Before Update feeds)
 
-# 添加 passwall 依赖包源
 echo "src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages;main" >> feeds.conf.default
-
-# 添加 passwall 主源
 echo "src-git passwall https://github.com/xiaorouji/openwrt-passwall;main" >> feeds.conf.default
 
 # 添加 OpenList（原 AList）
