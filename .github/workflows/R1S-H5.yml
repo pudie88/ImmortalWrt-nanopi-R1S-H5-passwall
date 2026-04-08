@@ -150,11 +150,19 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        cp openwrt/.config openwrt/bin/targets/*/*/
+        # 1. 进入固件生成的具体目录 (根据你的源码路径调整)
         cd openwrt/bin/targets/*/*
+        
+        # 2. 移除不需要的大型文件夹
         rm -rf packages
+        
+        # 3. 将当前绝对路径存入环境变量
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "status=success" >> $GITHUB_OUTPUT
+        
+        # 4. (可选) 把配置文件拷进去方便以后查看，用绝对路径防错
+        cp $GITHUB_WORKSPACE/openwrt/.config $PWD/config.buildinfo || true
+        
+        echo "status=success" >> "$GITHUB_OUTPUT"
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@v4
@@ -194,7 +202,11 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: ${{ env.FIRMWARE }}/*
+        # 明确指定只上传这些后缀的文件，彻底避开 /swapfile
+        files: |
+          ${{ env.FIRMWARE }}/*.img.gz
+          ${{ env.FIRMWARE }}/*.manifest
+          ${{ env.FIRMWARE }}/*.buildinfo
 
     - name: Delete old releases
       uses: dev-drprasad/delete-older-releases@v0.3.4
