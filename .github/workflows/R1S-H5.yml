@@ -72,12 +72,13 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
 
-    - name: Clone source code
-      working-directory: /workdir
+    - name: Load custom feeds
       run: |
-        df -hT $PWD
-        git clone --depth=1 $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        sed -i 's/__https/https/g; s/;main__/;main/g' openwrt/feeds.conf.default
+        chmod +x $DIY_P1_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_P1_SH
 
     - name: Load custom feeds
       run: |
