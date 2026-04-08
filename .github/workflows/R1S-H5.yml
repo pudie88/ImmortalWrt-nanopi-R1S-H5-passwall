@@ -81,13 +81,15 @@ jobs:
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
         cd openwrt
+        # 先清理上游 feeds.conf.default 里可能存在的 __ 污染
+        sed -i 's/__https/https/g; s/;main__/;main/g; s/;master__/;master/g' feeds.conf.default
+        # 如果已有 passwall 源则先删除，避免重复
+        sed -i '/openwrt-passwall/d' feeds.conf.default
+        # 再由脚本追加干净的 passwall 源
+        chmod +x $GITHUB_WORKSPACE/$DIY_P1_SH
         $GITHUB_WORKSPACE/$DIY_P1_SH
-        echo "=== feeds.conf.default 内容 ==="
-        cat feeds.conf.default
-        sed -i 's/__https/https/g; s/;main__/;main/g' feeds.conf.default
-        echo "=== 修复后内容 ==="
+        echo "=== feeds.conf.default 最终内容 ==="
         cat feeds.conf.default
 
     - name: Update feeds
